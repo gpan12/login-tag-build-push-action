@@ -1,6 +1,9 @@
 name: Login to registry, tag, build and push images
 description: "Login to registry, tag, build and push images"
 author: "MeVer"
+branding:
+  icon: "upload-cloud"
+  color: "blue"
 inputs:
   registry:
     description: "Registry URL"
