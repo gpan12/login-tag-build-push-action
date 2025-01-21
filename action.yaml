@@ -1,0 +1,54 @@
+name: Login to registry, tag, build and push images
+description: "Login to registry, tag, build and push images"
+author: "MeVer"
+inputs:
+  registry:
+    description: "Registry URL"
+    required: true
+  username:
+    description: "Username"
+    required: true
+  password:
+    description: "Password"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Get current date
+      id: date
+      shell: bash
+      run: echo "date=$(date +%F.%H%M%S)" >> $GITHUB_OUTPUT
+    - name: Set short sha
+      id: short_sha
+      run: echo "sha=$(git rev-parse --short=8 ${{ github.sha }})" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: Set branch
+      id: branch
+      shell: bash
+      # / might be contained in short ref if it's a PR
+      run: echo "branch=$(echo ${{ github.ref_name }} | tr / . )" >> $GITHUB_OUTPUT
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          mever/${{ inputs.repo }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=tag
+          type=ref,event=pr
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{steps.branch.outputs.branch}}-${{steps.short_sha.outputs.sha}}-${{steps.date.outputs.date}}
+    - name: Login to container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
