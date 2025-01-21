@@ -5,6 +5,9 @@ branding:
   icon: "upload-cloud"
   color: "blue"
 inputs:
+  repository:
+    description: "Repository"
+    required: true
   registry:
     description: "Registry URL"
     required: true
@@ -14,6 +17,14 @@ inputs:
   password:
     description: "Password"
     required: true
+  context:
+    description: "Context"
+    required: false
+    default: "."
+  dockerfile:
+    description: "Dockerfile"
+    required: false
+    default: "./Dockerfile"
 runs:
   using: "composite"
   steps:
@@ -34,8 +45,7 @@ runs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: |
-          mever/${{ inputs.repo }}
+        images: ${{ inputs.repository }}
         tags: |
           type=ref,event=branch
           type=ref,event=tag
@@ -49,9 +59,10 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     - name: Build and push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6.12.0
       with:
-        context: .
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
