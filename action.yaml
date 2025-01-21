@@ -5,8 +5,8 @@ branding:
   icon: "upload-cloud"
   color: "blue"
 inputs:
-  repository:
-    description: "Repository"
+  image:
+    description: "Image"
     required: true
   registry:
     description: "Registry URL"
@@ -45,7 +45,7 @@ runs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ inputs.repository }}
+        images: ${{ inputs.image }}
         tags: |
           type=ref,event=branch
           type=ref,event=tag
